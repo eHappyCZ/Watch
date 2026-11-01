@@ -100,4 +100,4 @@ Pull requesty s dalšími jazyky jsou vítané.
 Licence zatím nebyla zvolena — všechna práva vyhrazena autorovi.
 
 ---
-<div align="center">Vytvořil <a href="https://github.com/eHappyCZ">eHappyCZ</a></div>
+<div align="center">Vytvořil <a href="https://github.com/eHappyCZ">eHappyCZ</a> · <a href="https://portible.eu">Portible.eu</a> · <a href="mailto:dev@portible.eu">dev@portible.eu</a></div>

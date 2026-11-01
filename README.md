@@ -100,4 +100,4 @@ Pull requests with new languages are welcome.
 No license has been chosen yet — all rights reserved by the author.
 
 ---
-<div align="center">Made by <a href="https://github.com/eHappyCZ">eHappyCZ</a></div>
+<div align="center">Made by <a href="https://github.com/eHappyCZ">eHappyCZ</a> · <a href="https://portible.eu">Portible.eu</a> · <a href="mailto:dev@portible.eu">dev@portible.eu</a></div>
