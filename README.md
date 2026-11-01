@@ -97,7 +97,7 @@ Adding a translation takes two steps:
 Pull requests with new languages are welcome.
 
 ## 📄 License
-No license has been chosen yet — all rights reserved by the author.
+Released under the [MIT License](LICENSE).
 
 ---
 <div align="center">Made by <a href="https://github.com/eHappyCZ">eHappyCZ</a> · <a href="https://portible.eu">Portible.eu</a> · <a href="mailto:dev@portible.eu">dev@portible.eu</a></div>

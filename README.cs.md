@@ -97,7 +97,7 @@ Přidání překladu jsou dva kroky:
 Pull requesty s dalšími jazyky jsou vítané.
 
 ## 📄 Licence
-Licence zatím nebyla zvolena — všechna práva vyhrazena autorovi.
+Vydáno pod [licencí MIT](LICENSE).
 
 ---
 <div align="center">Vytvořil <a href="https://github.com/eHappyCZ">eHappyCZ</a> · <a href="https://portible.eu">Portible.eu</a> · <a href="mailto:dev@portible.eu">dev@portible.eu</a></div>
