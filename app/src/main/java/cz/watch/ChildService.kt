@@ -80,9 +80,9 @@ class ChildService : Service() {
             "volume" -> applyVolume(o)
             "msg" -> {
                 val text = Crypto.decrypt(Prefs.childSecret(this), o.optString("textEnc"))
-                notifyChild("Zpráva od rodiče", text ?: "(zprávu se nepodařilo dešifrovat)")
+                notifyChild(getString(R.string.msg_from_parent), text ?: getString(R.string.msg_decrypt_failed))
             }
-            "granted" -> notifyChild("Rodič povolil internet", "Na ${o.optInt("min")} min")
+            "granted" -> notifyChild(getString(R.string.parent_allowed_net), getString(R.string.for_min, o.optInt("min")))
         }
     }
 
@@ -162,7 +162,7 @@ class ChildService : Service() {
     private fun notifyChild(title: String, text: String) {
         val nm = getSystemService(NotificationManager::class.java)
         nm.createNotificationChannel(
-            NotificationChannel("watch_msg", "Zprávy od rodiče", NotificationManager.IMPORTANCE_HIGH)
+            NotificationChannel("watch_msg", getString(R.string.ch_parent_msgs), NotificationManager.IMPORTANCE_HIGH)
         )
         val open = PendingIntent.getActivity(
             this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE
@@ -190,7 +190,7 @@ class ChildService : Service() {
         )
         return Notification.Builder(this, "watch")
             .setContentTitle("Watch")
-            .setContentText("Rodičovská kontrola je aktivní")
+            .setContentText(getString(R.string.protection_active))
             .setSmallIcon(R.drawable.ic_stat_watch)
             .setContentIntent(open)
             .build()

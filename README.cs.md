@@ -85,6 +85,17 @@ Potřebuješ JDK 17+ a Android SDK. Podpis release verze používá `keystore/ke
 ## 🛠 Technologie
 Nativní Android (Kotlin, bez UI knihoven) · `VpnService` · `DeviceAdminReceiver` · foreground služby · Node.js + `ws` · end-to-end šifrování.
 
+## 🌍 Jazyky
+
+Aplikace se řídí jazykem telefonu. Aktuálně je k dispozici **English** (výchozí) a **Čeština**.
+Na Androidu 13+ jde jazyk nastavit i pro každou aplikaci zvlášť: *Nastavení → Aplikace → Watch → Jazyk*.
+
+Přidání překladu jsou dva kroky:
+1. Zkopíruj [`app/src/main/res/values/strings.xml`](app/src/main/res/values/strings.xml) do `app/src/main/res/values-<kód>/strings.xml` (např. `values-de`) a přelož texty.
+2. Přidej `<locale android:name="<kód>" />` do [`res/xml/locales_config.xml`](app/src/main/res/xml/locales_config.xml).
+
+Pull requesty s dalšími jazyky jsou vítané.
+
 ## 📄 Licence
 Licence zatím nebyla zvolena — všechna práva vyhrazena autorovi.
 

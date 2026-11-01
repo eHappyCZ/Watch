@@ -67,7 +67,12 @@ class MainActivity : Activity() {
         val GOLD = Color.parseColor("#FFC24B")
         val PINK = Color.parseColor("#FF7A86")
         val ALERT_BG = Color.parseColor("#2B1420")
-        val DAYS = listOf("Po", "Út", "St", "Čt", "Pá", "So", "Ne")
+        val DAYS: List<String>
+            get() = (1..7).map {
+                java.time.DayOfWeek.of(it)
+                    .getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.getDefault())
+                    .replaceFirstChar { c -> c.uppercase() }
+            }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -271,13 +276,13 @@ class MainActivity : Activity() {
     private fun askPin(onOk: () -> Unit) {
         val input = pinField()
         AlertDialog.Builder(this)
-            .setTitle("Zadej rodičovský PIN")
+            .setTitle(getString(R.string.pin_title))
             .setView(input)
             .setPositiveButton("OK") { _, _ ->
                 if (Prefs.checkPin(this, input.text.toString())) onOk()
-                else Toast.makeText(this, "Špatný PIN", Toast.LENGTH_SHORT).show()
+                else Toast.makeText(this, getString(R.string.wrong_pin), Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton("Zrušit", null)
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
@@ -287,7 +292,7 @@ class MainActivity : Activity() {
     }
 
     private fun subHeader(l: LinearLayout, title: String, sub: String = "") {
-        textButton(l, "← Zpět") { go("main") }
+        textButton(l, getString(R.string.back_arrow)) { go("main") }
         label(l, title, 26f, TEXT, true)
         if (sub.isNotEmpty()) label(l, sub, 13f, MUTED, topDp = 4)
     }
@@ -312,16 +317,16 @@ class MainActivity : Activity() {
     private fun ago(serverMs: Long): String {
         val min = ((System.currentTimeMillis() + skew - serverMs) / 60000).coerceAtLeast(0)
         return when {
-            min < 1 -> "právě teď"
-            min < 60 -> "před $min min"
-            else -> "před ${min / 60} h"
+            min < 1 -> getString(R.string.just_now)
+            min < 60 -> getString(R.string.ago_min, min)
+            else -> getString(R.string.ago_h, min / 60)
         }
     }
 
     private fun fmtMs(ms: Long): String {
         val h = ms / 3_600_000
         val m = ms % 3_600_000 / 60_000
-        return if (h > 0) "$h h $m min" else "$m min"
+        return if (h > 0) getString(R.string.fmt_h_min, h, m) else getString(R.string.fmt_min, m)
     }
 
     private fun go(s: String) { screen = s; render() }
@@ -337,12 +342,12 @@ class MainActivity : Activity() {
 
     private fun chooseScreen() {
         val l = root()
-        header(l, "Kdo používá tento telefon?")
+        header(l, getString(R.string.who_uses))
         l.addView(View(this), LinearLayout.LayoutParams(-1, dp(24)))
-        bigButton(l, "👨‍👩‍👧", "Jsem rodič", BLUE) {
+        bigButton(l, "👨‍👩‍👧", getString(R.string.im_parent), BLUE) {
             Prefs.save(this, "parent", Prefs.code(this)); screen = "main"; render()
         }
-        bigButton(l, "📱", "Telefon dítěte", AMBER) { pairChild() }
+        bigButton(l, "📱", getString(R.string.child_phone), AMBER) { pairChild() }
     }
 
     private fun pairChild() {
@@ -369,11 +374,11 @@ class MainActivity : Activity() {
 
     private fun childScreen() {
         val l = root()
-        header(l, "Telefon dítěte")
+        header(l, getString(R.string.child_phone))
 
         val fullCode = (Prefs.code(this) ?: "") + Prefs.childSecret(this)
         val c = card(l, 28)
-        label(c, "PÁROVACÍ KÓD PRO RODIČE", 12f, MUTED2, true).letterSpacing = 0.05f
+        label(c, getString(R.string.pairing_code), 12f, MUTED2, true).letterSpacing = 0.05f
         label(c, fullCode.chunked(4).joinToString(" "), 24f, TEXT, true, 10)
             .typeface = Typeface.MONOSPACE
         val copyRow = LinearLayout(this).apply {
@@ -381,13 +386,13 @@ class MainActivity : Activity() {
             isClickable = true
             setOnClickListener {
                 val cm = getSystemService(ClipboardManager::class.java)
-                cm.setPrimaryClip(ClipData.newPlainText("Watch kód", fullCode))
-                toast("Kód zkopírován")
+                cm.setPrimaryClip(ClipData.newPlainText(getString(R.string.code_clip), fullCode))
+                toast(getString(R.string.code_copied))
             }
         }
         copyRow.addView(TextView(this).apply { text = "📋"; textSize = 13f })
         copyRow.addView(TextView(this).apply {
-            text = "  Kopírovat"; textSize = 12.5f; setTextColor(BLUE); setTypeface(typeface, Typeface.BOLD)
+            text = "  " + getString(R.string.copy); textSize = 12.5f; setTextColor(BLUE); setTypeface(typeface, Typeface.BOLD)
         })
         c.addView(copyRow, lp(14))
 
@@ -396,18 +401,18 @@ class MainActivity : Activity() {
         val needBattery = !getSystemService(PowerManager::class.java).isIgnoringBatteryOptimizations(packageName)
 
         val s = card(l)
-        dotRow(s, true, "Ochrana běží", 0)
+        dotRow(s, true, getString(R.string.protection_running), 0)
         val connected = ChildLink.current?.isOpen == true
-        dotRow(s, connected, if (connected) "Spojení se serverem" else "Bez spojení se serverem")
-        dotRow(s, adminOk, if (adminOk) "Zamykání povoleno" else "Zamykání není povoleno")
-        dotRow(s, Prefs.hasPin(this), if (Prefs.hasPin(this)) "PIN nastaven" else "PIN není nastaven")
-        dotRow(s, !needBattery, if (!needBattery) "Běh na pozadí povolen" else "Běh na pozadí není povolen")
+        dotRow(s, connected, if (connected) getString(R.string.server_connected) else getString(R.string.server_disconnected))
+        dotRow(s, adminOk, if (adminOk) getString(R.string.lock_allowed) else getString(R.string.lock_not_allowed))
+        dotRow(s, Prefs.hasPin(this), if (Prefs.hasPin(this)) getString(R.string.pin_set) else getString(R.string.pin_not_set))
+        dotRow(s, !needBattery, if (!needBattery) getString(R.string.bg_allowed) else getString(R.string.bg_not_allowed))
 
         val lastCmd = when (ChildLink.lastBlocked) {
-            null -> "žádný"
-            true -> "VYPNOUT internet"
-            false -> "ZAPNOUT internet"
-        } + if (ChildLink.lastAt > 0) " (před ${(System.currentTimeMillis() - ChildLink.lastAt) / 1000} s)" else ""
+            null -> getString(R.string.none)
+            true -> getString(R.string.cmd_block)
+            false -> getString(R.string.cmd_unblock)
+        } + if (ChildLink.lastAt > 0) " " + getString(R.string.last_cmd_ago, (System.currentTimeMillis() - ChildLink.lastAt) / 1000) else ""
         val lastRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
             background = bg(tint(Color.WHITE, 3), 14)
@@ -418,7 +423,7 @@ class MainActivity : Activity() {
             LinearLayout.LayoutParams(-2, -2).apply { marginEnd = dp(8) }
         )
         lastRow.addView(TextView(this).apply {
-            text = "Poslední příkaz: $lastCmd"; textSize = 12.5f; setTextColor(MUTED)
+            text = getString(R.string.last_cmd, lastCmd); textSize = 12.5f; setTextColor(MUTED)
         })
 
         val needVpn = VpnService.prepare(this) != null
@@ -431,7 +436,7 @@ class MainActivity : Activity() {
         if (setupDone && !Prefs.iconHidden(this)) {
             setLauncherIcon(false)
             Prefs.setIconHidden(this, true)
-            toast("Ikona je skrytá. Appku najdeš přes oznámení „Watch“.")
+            toast(getString(R.string.icon_hidden))
         } else if (!setupDone && Prefs.iconHidden(this)) {
             setLauncherIcon(true)
             Prefs.setIconHidden(this, false)
@@ -439,27 +444,27 @@ class MainActivity : Activity() {
 
         if (!adminOk || needVpn || needUsage || needLoc || needAlways || needBattery) {
             val p = card(l)
-            label(p, "Dokonči nastavení", 16f, TEXT, true)
-            if (needVpn) bigButton(p, "🔑", "Obnovit oprávnění VPN", BLUE, 12) {
+            label(p, getString(R.string.finish_setup), 16f, TEXT, true)
+            if (needVpn) bigButton(p, "🔑", getString(R.string.renew_vpn), BLUE, 12) {
                 VpnService.prepare(this)?.let { startActivityForResult(it, 1) }
             }
-            if (!adminOk) bigButton(p, "🔒", "Povolit zamykání", BLUE, 12) {
+            if (!adminOk) bigButton(p, "🔒", getString(R.string.allow_lock), BLUE, 12) {
                 startActivity(
                     Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN)
                         .putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, admin)
                 )
             }
-            if (needUsage) bigButton(p, "📊", "Povolit přehled používání", BLUE, 12) {
+            if (needUsage) bigButton(p, "📊", getString(R.string.allow_usage), BLUE, 12) {
                 startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
             }
-            if (needLoc) bigButton(p, "📍", "Povolit polohu", BLUE, 12) {
+            if (needLoc) bigButton(p, "📍", getString(R.string.allow_location), BLUE, 12) {
                 requestPermissions(
                     arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), 2
                 )
             }
-            if (needAlways) bigButton(p, "📍", "Povolit polohu „vždy“", BLUE, 12) {
+            if (needAlways) bigButton(p, "📍", getString(R.string.allow_location_always), BLUE, 12) {
                 if (Build.VERSION.SDK_INT >= 30) {
-                    toast("Oprávnění → Poloha → Vždy povolit")
+                    toast(getString(R.string.location_hint))
                     startActivity(
                         Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName"))
                     )
@@ -467,7 +472,7 @@ class MainActivity : Activity() {
                     requestPermissions(arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION), 3)
                 }
             }
-            if (needBattery) bigButton(p, "🔋", "Povolit běh na pozadí", BLUE, 12) {
+            if (needBattery) bigButton(p, "🔋", getString(R.string.allow_bg), BLUE, 12) {
                 try {
                     startActivity(
                         Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:$packageName"))
@@ -480,37 +485,37 @@ class MainActivity : Activity() {
 
         if (!Prefs.hasPin(this)) {
             val p = card(l)
-            label(p, "Nastav rodičovský PIN", 16f, TEXT, true)
-            label(p, "Bude potřeba ke zrušení párování (4–8 číslic)", 13f, MUTED, topDp = 4)
+            label(p, getString(R.string.set_parent_pin), 16f, TEXT, true)
+            label(p, getString(R.string.pin_needed), 13f, MUTED, topDp = 4)
             val input = pinField()
             p.addView(input, lp(12))
-            bigButton(p, "🔑", "Uložit PIN", BLUE, 12) {
+            bigButton(p, "🔑", getString(R.string.save_pin), BLUE, 12) {
                 val v = input.text.toString()
                 if (v.length in 4..8) { Prefs.setPin(this, v); render() }
-                else toast("PIN má mít 4–8 číslic")
+                else toast(getString(R.string.pin_len))
             }
         }
 
-        bigButton(l, "🕐", "Požádat o čas", AMBER, 16) {
-            val labels = arrayOf("10 minut", "30 minut", "1 hodinu")
+        bigButton(l, "🕐", getString(R.string.ask_time), AMBER, 16) {
+            val labels = arrayOf(getString(R.string.time_10m), getString(R.string.time_30m), getString(R.string.time_1h))
             AlertDialog.Builder(this)
-                .setTitle("Kolik času navíc?")
+                .setTitle(getString(R.string.how_much_time))
                 .setItems(labels) { _, i ->
-                    val textEnc = Crypto.encrypt(Prefs.childSecret(this), "Chci ještě ${labels[i]}")
+                    val textEnc = Crypto.encrypt(Prefs.childSecret(this), getString(R.string.want_more, labels[i]))
                     val ok = ChildLink.current?.send(
                         JSONObject().put("t", "request").put("textEnc", textEnc)
                     ) == true
-                    toast(if (ok) "Žádost odeslána rodiči" else "Není spojení se serverem")
+                    toast(if (ok) getString(R.string.request_sent) else getString(R.string.no_server))
                 }
                 .show()
         }
         if (AlarmPlayer.isPlaying) {
-            bigButton(l, "🔕", "Ztlumit zvonění", RED, 12) { AlarmPlayer.stop(); render() }
+            bigButton(l, "🔕", getString(R.string.mute_ring), RED, 12) { AlarmPlayer.stop(); render() }
         }
 
-        label(l, "Tuto aplikaci nevypínej.", 13f, MUTED, topDp = 16)
+        label(l, getString(R.string.keep_running), 13f, MUTED, topDp = 16)
         if (Prefs.hasPin(this)) {
-            textButton(l, "Zrušit párování") {
+            textButton(l, getString(R.string.unpair)) {
                 askPin {
                     stopService(Intent(this, ChildService::class.java))
                     BlockVpnService.stop(this)
@@ -574,7 +579,7 @@ class MainActivity : Activity() {
 
     private fun cmd(o: JSONObject): Boolean {
         val ok = link?.send(o) == true
-        if (!ok) toast("Není spojení se serverem")
+        if (!ok) toast(getString(R.string.no_server))
         return ok
     }
 
@@ -586,10 +591,10 @@ class MainActivity : Activity() {
     private fun pickMinutes(title: String, options: List<Int>, onPick: (Int) -> Unit) {
         val labels = options.map { m ->
             when {
-                m == 0 -> "Dokud nezapnu"
-                m < 60 -> "$m min"
-                m == 60 -> "1 hodinu"
-                else -> "${m / 60} hodiny"
+                m == 0 -> getString(R.string.until_on)
+                m < 60 -> getString(R.string.fmt_min, m)
+                m == 60 -> getString(R.string.time_1h)
+                else -> getString(R.string.fmt_hours, m / 60)
             }
         }.toTypedArray()
         AlertDialog.Builder(this).setTitle(title)
@@ -598,35 +603,35 @@ class MainActivity : Activity() {
 
     private fun pickVolume(onPick: (Int) -> Unit) {
         val levels = listOf(0, 25, 50, 75, 100)
-        val labels = levels.map { if (it == 0) "Vypnuto" else "$it %" }.toTypedArray()
-        AlertDialog.Builder(this).setTitle("Hlasitost telefonu")
+        val labels = levels.map { if (it == 0) getString(R.string.off) else "$it %" }.toTypedArray()
+        AlertDialog.Builder(this).setTitle(getString(R.string.phone_volume))
             .setItems(labels) { _, i -> onPick(levels[i]) }.show()
     }
 
     private fun addChildScreen() {
         val l = root()
-        header(l, "Přidat dítě")
+        header(l, getString(R.string.add_child))
         val c = card(l, 28)
-        label(c, "Jméno dítěte", 15f, MUTED)
-        val name = field("např. Honza", 20f)
+        label(c, getString(R.string.child_name), 15f, MUTED)
+        val name = field(getString(R.string.name_example), 20f)
         c.addView(name, lp(12))
-        label(c, "Kód z dětského telefonu", 15f, MUTED, topDp = 20)
+        label(c, getString(R.string.code_from_child), 15f, MUTED, topDp = 20)
         val input = field("XXXX XXXX XXXX XXXX", 20f).apply {
             typeface = Typeface.MONOSPACE
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
         }
         c.addView(input, lp(12))
-        bigButton(l, "🔗", "Spárovat", BLUE, 24) {
+        bigButton(l, "🔗", getString(R.string.pair), BLUE, 24) {
             val v = input.text.toString().filter { it.isLetterOrDigit() }.uppercase()
-            if (v.length != 16) { toast("Kód má 16 znaků"); return@bigButton }
-            val n = name.text.toString().trim().ifEmpty { "Dítě ${Prefs.devices(this).size + 1}" }
+            if (v.length != 16) { toast(getString(R.string.code_16)); return@bigButton }
+            val n = name.text.toString().trim().ifEmpty { getString(R.string.child_n, Prefs.devices(this).size + 1) }
             Prefs.addDevice(this, v.take(8), v.drop(8), n)
             stopParentLink()
             screen = "main"
             restartParentService()
             render()
         }
-        textButton(l, "Zpět") {
+        textButton(l, getString(R.string.back)) {
             if (Prefs.devices(this).isNotEmpty()) go("main")
             else { Prefs.save(this, null, null); screen = "main"; render() }
         }
@@ -634,9 +639,9 @@ class MainActivity : Activity() {
 
     private fun parentMain(code: String) {
         val devs = Prefs.devices(this)
-        val name = devs.firstOrNull { it.code == code }?.name ?: "Dítě"
+        val name = devs.firstOrNull { it.code == code }?.name ?: getString(R.string.child_default)
         val l = root()
-        header(l, "Ovládání dětských telefonů")
+        header(l, getString(R.string.control_title))
 
         val hs = HorizontalScrollView(this).apply { isHorizontalScrollBarEnabled = false }
         val chips = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
@@ -665,7 +670,7 @@ class MainActivity : Activity() {
                 if (d.code != code) { Prefs.select(this, d.code); render() }
             }
         }
-        chip("＋ Přidat dítě", false) { screen = "add"; render() }
+        chip(getString(R.string.add_child_chip), false) { screen = "add"; render() }
 
         val statusCard = card(l, 16)
         val headRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
@@ -675,7 +680,7 @@ class MainActivity : Activity() {
         val textCol = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         headRow.addView(textCol, LinearLayout.LayoutParams(0, -2, 1f).apply { marginStart = dp(14) })
         val status = TextView(this).apply {
-            text = "Připojuji…"; textSize = 17f; setTextColor(TEXT); setTypeface(typeface, Typeface.BOLD)
+            text = getString(R.string.connecting); textSize = 17f; setTextColor(TEXT); setTypeface(typeface, Typeface.BOLD)
         }
         textCol.addView(status, LinearLayout.LayoutParams(-1, -2))
         val hint = TextView(this).apply { textSize = 13f; setTextColor(MUTED); setTypeface(typeface, Typeface.BOLD) }
@@ -704,7 +709,7 @@ class MainActivity : Activity() {
         }
         alertCol.addView(alertText, LinearLayout.LayoutParams(-1, -2))
         TextView(this).apply {
-            text = "Rozumím"; textSize = 12.5f; setTextColor(PINK); setTypeface(typeface, Typeface.BOLD)
+            text = getString(R.string.understood); textSize = 12.5f; setTextColor(PINK); setTypeface(typeface, Typeface.BOLD)
             setPadding(0, dp(8), 0, 0)
             setOnClickListener { Prefs.setAck(this@MainActivity, code, pendingAlert); alertCard.visibility = View.GONE }
         }.also { alertCol.addView(it, LinearLayout.LayoutParams(-2, -2)) }
@@ -730,55 +735,55 @@ class MainActivity : Activity() {
             reqCard.visibility = View.GONE
         }
         val reqRow = row(reqCard, 12)
-        smallButton(reqRow, "Povolit 10 min", GREEN) {
+        smallButton(reqRow, getString(R.string.allow_10), GREEN) {
             if (cmd(JSONObject().put("t", "grant").put("min", 10))) ackRequest()
         }
-        smallButton(reqRow, "Povolit 30 min", GREEN) {
+        smallButton(reqRow, getString(R.string.allow_30), GREEN) {
             if (cmd(JSONObject().put("t", "grant").put("min", 30))) ackRequest()
         }
-        smallButton(reqRow, "Zamítnout", CARD2) { ackRequest() }
+        smallButton(reqRow, getString(R.string.deny), CARD2) { ackRequest() }
         reqCard.visibility = View.GONE
 
-        sectionLabel(l, "Rychlé akce", 20)
+        sectionLabel(l, getString(R.string.quick_actions), 20)
         val tr1 = tileRow(l)
-        val (toggleTile, toggleBadge, toggleLabel) = iconTile(tr1, "🌐", "Odpojit\ninternet", RED) { }
-        iconTile(tr1, "🔒", "Zamknout\ntelefon", BLUE) {
-            if (cmd(JSONObject().put("t", "lock"))) toast("Příkaz k zamknutí odeslán")
+        val (toggleTile, toggleBadge, toggleLabel) = iconTile(tr1, "🌐", getString(R.string.tile_cut), RED) { }
+        iconTile(tr1, "🔒", getString(R.string.tile_lock), BLUE) {
+            if (cmd(JSONObject().put("t", "lock"))) toast(getString(R.string.lock_sent))
         }
-        iconTile(tr1, "🔊", "Hlasitost…", MINT) {
+        iconTile(tr1, "🔊", getString(R.string.tile_volume), MINT) {
             pickVolume { lvl ->
-                if (cmd(JSONObject().put("t", "volume").put("level", lvl))) toast("Příkaz odeslán")
+                if (cmd(JSONObject().put("t", "volume").put("level", lvl))) toast(getString(R.string.cmd_sent))
             }
         }
         val tr2 = tileRow(l)
-        iconTile(tr2, "📱", "Aplikace", MUTED) { go("apps") }
-        iconTile(tr2, "🗓", "Rozvrh", MUTED) { go("schedule") }
-        iconTile(tr2, "📍", "Poloha", MUTED) { go("location") }
+        iconTile(tr2, "📱", getString(R.string.tile_apps), MUTED) { go("apps") }
+        iconTile(tr2, "🗓", getString(R.string.tile_schedule), MUTED) { go("schedule") }
+        iconTile(tr2, "📍", getString(R.string.tile_location), MUTED) { go("location") }
         val tr3 = tileRow(l)
-        iconTile(tr3, "📊", "Používání", MUTED) { go("usage") }
+        iconTile(tr3, "📊", getString(R.string.tile_usage), MUTED) { go("usage") }
         View(this).apply { visibility = View.INVISIBLE }
             .also { tr3.addView(it, LinearLayout.LayoutParams(0, -2, 2f)) }
 
-        sectionLabel(l, "Komunikace", 22)
+        sectionLabel(l, getString(R.string.communication), 22)
         val cr = tileRow(l)
-        pillButton(cr, "💬", "Zpráva") { messageDialog() }
-        val (findTile, findIcon, findLabel) = pillButton(cr, "🔔", "Najít telefon") { }
+        pillButton(cr, "💬", getString(R.string.pill_message)) { messageDialog() }
+        val (findTile, findIcon, findLabel) = pillButton(cr, "🔔", getString(R.string.pill_find)) { }
         findTile.setOnClickListener {
             if (cmd(JSONObject().put("t", "find").put("on", !finding))) {
                 finding = !finding
                 findIcon.text = if (finding) "🔕" else "🔔"
-                findLabel.text = "  " + if (finding) "Ztlumit" else "Najít telefon"
+                findLabel.text = "  " + if (finding) getString(R.string.pill_mute) else getString(R.string.pill_find)
             }
         }
         findIcon.text = if (finding) "🔕" else "🔔"
-        findLabel.text = "  " + if (finding) "Ztlumit" else "Najít telefon"
+        findLabel.text = "  " + if (finding) getString(R.string.pill_mute) else getString(R.string.pill_find)
 
-        textButton(l, "Upravit nebo odebrat dítě") { manageChild(code, name) }
+        textButton(l, getString(R.string.manage_child)) { manageChild(code, name) }
 
         fun refresh() {
             if (serverError != null) {
-                setBadge(statusBadge, "❓", MUTED); status.text = "Neznámý kód"
-                hint.text = "Odeber dítě a spáruj znovu s kódem z jeho telefonu"; hint.setTextColor(MUTED)
+                setBadge(statusBadge, "❓", MUTED); status.text = getString(R.string.unknown_code)
+                hint.text = getString(R.string.unknown_code_hint); hint.setTextColor(MUTED)
                 return
             }
             val s = state ?: return
@@ -791,57 +796,57 @@ class MainActivity : Activity() {
             val blocked = s.optBoolean("blocked")
             when {
                 wanted != active -> {
-                    setBadge(statusBadge, "⏳", AMBER); status.text = "Odesílám příkaz…"
-                    hint.text = "Čekám na potvrzení z telefonu"; hint.setTextColor(AMBER)
+                    setBadge(statusBadge, "⏳", AMBER); status.text = getString(R.string.sending)
+                    hint.text = getString(R.string.waiting_confirm); hint.setTextColor(AMBER)
                 }
                 netBlocked -> {
-                    setBadge(statusBadge, "🌐", RED); status.text = "Internet je vypnutý"
+                    setBadge(statusBadge, "🌐", RED); status.text = getString(R.string.net_off)
                     hint.text = when {
-                        until > 0 -> "Zapne se v ${clock(until)}"
-                        s.optBoolean("scheduleActive") && !blocked -> "Podle rozvrhu"
-                        else -> "Web i aplikace jsou odpojené"
+                        until > 0 -> getString(R.string.turns_on_at, clock(until))
+                        s.optBoolean("scheduleActive") && !blocked -> getString(R.string.by_schedule)
+                        else -> getString(R.string.web_apps_off)
                     }
                     hint.setTextColor(RED)
                 }
                 appsN > 0 -> {
-                    setBadge(statusBadge, "📵", AMBER); status.text = "Blokované aplikace: $appsN"
-                    hint.text = "Ostatní internet funguje"; hint.setTextColor(AMBER)
+                    setBadge(statusBadge, "📵", AMBER); status.text = getString(R.string.blocked_apps_n, appsN)
+                    hint.text = getString(R.string.other_works); hint.setTextColor(AMBER)
                 }
                 grantUntil > 0 -> {
-                    setBadge(statusBadge, "🌐", MINT); status.text = "Internet povolen do ${clock(grantUntil)}"
-                    hint.text = "Rodič povolil dočasný přístup"; hint.setTextColor(MINT)
+                    setBadge(statusBadge, "🌐", MINT); status.text = getString(R.string.allowed_until, clock(grantUntil))
+                    hint.text = getString(R.string.parent_allowed); hint.setTextColor(MINT)
                 }
                 else -> {
-                    setBadge(statusBadge, "🌐", MINT); status.text = "Internet je zapnutý"
-                    hint.text = "$name má normální přístup"; hint.setTextColor(MINT)
+                    setBadge(statusBadge, "🌐", MINT); status.text = getString(R.string.net_on)
+                    hint.text = getString(R.string.name_normal, name); hint.setTextColor(MINT)
                 }
             }
             val st = statusMsg
             if (!s.optBoolean("childOnline")) {
-                hint.text = "Dětský telefon je offline – příkaz se provede po připojení"; hint.setTextColor(AMBER)
+                hint.text = getString(R.string.child_offline); hint.setTextColor(AMBER)
             } else if (st?.optBoolean("vpnErr") == true) {
-                hint.text = "VPN selhala – dítě musí v aplikaci obnovit oprávnění VPN"; hint.setTextColor(AMBER)
+                hint.text = getString(R.string.vpn_failed); hint.setTextColor(AMBER)
             }
             info.text = if (st != null && st.has("bat")) {
-                "🔋 ${st.optInt("bat")} %" + (if (st.optBoolean("chg")) " (nabíjí se)" else "") +
+                "🔋 ${st.optInt("bat")} %" + (if (st.optBoolean("chg")) " (${getString(R.string.charging)})" else "") +
                     (if (st.has("vol")) " · 🔊 ${st.optInt("vol")} %" else "") +
                     " · " + ago(st.optLong("at"))
             } else ""
 
             when {
-                blocked -> { toggleLabel.text = "Zapnout\ninternet"; setBadge(toggleBadge, "🌐", MINT, 12) }
-                grantUntil > 0 -> { toggleLabel.text = "Zrušit\npovolení"; setBadge(toggleBadge, "🌐", AMBER, 12) }
-                netBlocked -> { toggleLabel.text = "Povolit\nna chvíli"; setBadge(toggleBadge, "🌐", AMBER, 12) }
-                else -> { toggleLabel.text = "Odpojit\ninternet"; setBadge(toggleBadge, "🌐", RED, 12) }
+                blocked -> { toggleLabel.text = getString(R.string.toggle_on); setBadge(toggleBadge, "🌐", MINT, 12) }
+                grantUntil > 0 -> { toggleLabel.text = getString(R.string.toggle_cancel); setBadge(toggleBadge, "🌐", AMBER, 12) }
+                netBlocked -> { toggleLabel.text = getString(R.string.toggle_allow); setBadge(toggleBadge, "🌐", AMBER, 12) }
+                else -> { toggleLabel.text = getString(R.string.tile_cut); setBadge(toggleBadge, "🌐", RED, 12) }
             }
             toggleTile.setOnClickListener {
                 when {
                     blocked -> cmd(JSONObject().put("t", "set").put("blocked", false))
                     grantUntil > 0 -> cmd(JSONObject().put("t", "grant").put("min", 0))
-                    netBlocked -> pickMinutes("Povolit internet na…", listOf(10, 30, 60, 120)) { m ->
+                    netBlocked -> pickMinutes(getString(R.string.pick_allow), listOf(10, 30, 60, 120)) { m ->
                         cmd(JSONObject().put("t", "grant").put("min", m))
                     }
-                    else -> pickMinutes("Odpojit internet na…", listOf(0, 15, 30, 60, 120)) { m ->
+                    else -> pickMinutes(getString(R.string.pick_cut), listOf(0, 15, 30, 60, 120)) { m ->
                         cmd(JSONObject().put("t", "set").put("blocked", true).put("minutes", m))
                     }
                 }
@@ -850,7 +855,7 @@ class MainActivity : Activity() {
             val off = s.optLong("adminDisabledAt")
             if (off > Prefs.ack(this, code)) {
                 pendingAlert = off
-                alertText.text = "$name vypnul(a) ochranu\n" +
+                alertText.text = getString(R.string.name_disabled, name) + "\n" +
                     java.text.DateFormat.getDateTimeInstance().format(java.util.Date(off - skew))
                 alertCard.visibility = View.VISIBLE
             } else alertCard.visibility = View.GONE
@@ -858,7 +863,7 @@ class MainActivity : Activity() {
             val rq = requestMsg
             if (rq != null && rq.optLong("at") > Prefs.long(this, "reqAck_$code")) {
                 val txt = Crypto.decrypt(Prefs.secretFor(this, code), rq.optString("textEnc"))
-                reqText.text = "$name žádá o čas\n${txt ?: "(nepodařilo se dešifrovat)"}"
+                reqText.text = getString(R.string.name_requests, name) + "\n" + (txt ?: getString(R.string.decrypt_failed))
                 reqCard.visibility = View.VISIBLE
             } else reqCard.visibility = View.GONE
         }
@@ -868,54 +873,54 @@ class MainActivity : Activity() {
 
     private fun messageDialog() {
         val input = EditText(this).apply {
-            hint = "Např. Večeře je hotová"
+            hint = getString(R.string.msg_hint)
             setPadding(dp(20), dp(16), dp(20), dp(16))
             filters = arrayOf(android.text.InputFilter.LengthFilter(200))
         }
         AlertDialog.Builder(this)
-            .setTitle("Zpráva dítěti")
+            .setTitle(getString(R.string.msg_title))
             .setView(input)
-            .setPositiveButton("Odeslat") { _, _ ->
+            .setPositiveButton(getString(R.string.send)) { _, _ ->
                 val t = input.text.toString().trim()
                 if (t.isEmpty()) return@setPositiveButton
                 val secret = Prefs.secretFor(this, Prefs.code(this) ?: "")
-                if (state?.optBoolean("childOnline") == false) toast("Dítě je offline – zpráva se nedoručí")
+                if (state?.optBoolean("childOnline") == false) toast(getString(R.string.msg_offline))
                 else if (cmd(JSONObject().put("t", "msg").put("textEnc", Crypto.encrypt(secret, t)))) {
-                    toast("Zpráva odeslána")
+                    toast(getString(R.string.msg_sent))
                 }
             }
-            .setNegativeButton("Zrušit", null)
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
     private fun manageChild(code: String, name: String) {
         AlertDialog.Builder(this)
             .setTitle(name)
-            .setItems(arrayOf("Přejmenovat", "Odebrat")) { _, i ->
+            .setItems(arrayOf(getString(R.string.rename), getString(R.string.remove))) { _, i ->
                 if (i == 0) {
                     val input = EditText(this).apply {
                         setText(name); setPadding(dp(20), dp(16), dp(20), dp(16))
                     }
-                    AlertDialog.Builder(this).setTitle("Nové jméno").setView(input)
-                        .setPositiveButton("Uložit") { _, _ ->
+                    AlertDialog.Builder(this).setTitle(getString(R.string.new_name)).setView(input)
+                        .setPositiveButton(getString(R.string.save_short)) { _, _ ->
                             val n = input.text.toString().trim()
                             if (n.isNotEmpty()) {
                                 Prefs.renameDevice(this, code, n)
                                 restartParentService(); render()
                             }
                         }
-                        .setNegativeButton("Zrušit", null).show()
+                        .setNegativeButton(getString(R.string.cancel), null).show()
                 } else {
-                    AlertDialog.Builder(this).setTitle("Odebrat $name?")
-                        .setMessage("Telefon dítěte tím nepřestane být chráněný, jen ho přestaneš ovládat z této aplikace.")
-                        .setPositiveButton("Odebrat") { _, _ ->
+                    AlertDialog.Builder(this).setTitle(getString(R.string.remove_name, name))
+                        .setMessage(getString(R.string.remove_msg))
+                        .setPositiveButton(getString(R.string.remove)) { _, _ ->
                             Prefs.removeDevice(this, code)
                             stopParentLink()
                             screen = "main"
                             restartParentService()
                             render()
                         }
-                        .setNegativeButton("Zrušit", null).show()
+                        .setNegativeButton(getString(R.string.cancel), null).show()
                 }
             }
             .show()
@@ -923,12 +928,12 @@ class MainActivity : Activity() {
 
     private fun appsScreen() {
         val l = root()
-        subHeader(l, "Blokované aplikace", "Označené aplikace nebudou mít internet")
+        subHeader(l, getString(R.string.blocked_apps), getString(R.string.blocked_apps_sub))
         val checks = LinkedHashMap<String, CheckBox>()
-        bigButton(l, "💾", "Uložit", BLUE, 16) {
+        bigButton(l, "💾", getString(R.string.save_short), BLUE, 16) {
             val arr = JSONArray()
             checks.forEach { (p, cb) -> if (cb.isChecked) arr.put(p) }
-            if (cmd(JSONObject().put("t", "setApps").put("apps", arr))) toast("Uloženo")
+            if (cmd(JSONObject().put("t", "setApps").put("apps", arr))) toast(getString(R.string.saved))
         }
         val box = card(l, 16)
         var built = 0
@@ -939,7 +944,7 @@ class MainActivity : Activity() {
             if (list == null || list.length() == 0) {
                 if (built != -1) {
                     box.removeAllViews()
-                    label(box, "Seznam aplikací zatím nemám.\nDětský telefon ho pošle po připojení.", 14f, MUTED)
+                    label(box, getString(R.string.no_app_list), 14f, MUTED)
                     built = -1
                 }
                 return
@@ -969,20 +974,20 @@ class MainActivity : Activity() {
 
     private fun usageScreen() {
         val l = root()
-        subHeader(l, "Používání dnes", "Které aplikace dítě dnes používalo")
-        bigButton(l, "🔄", "Obnovit", BLUE, 16) {
-            if (cmd(JSONObject().put("t", "getUsage"))) toast("Žádám o data…")
+        subHeader(l, getString(R.string.usage_today), getString(R.string.usage_today_sub))
+        bigButton(l, "🔄", getString(R.string.refresh), BLUE, 16) {
+            if (cmd(JSONObject().put("t", "getUsage"))) toast(getString(R.string.asking_data))
         }
         val box = card(l, 16)
         fun refresh() {
             box.removeAllViews()
             val u = usageMsg
             if (u == null) {
-                label(box, "Zatím žádná data.\nKlepni na Obnovit.", 14f, MUTED); return
+                label(box, getString(R.string.no_data_refresh), 14f, MUTED); return
             }
             if (u.optBoolean("denied")) {
                 label(
-                    box, "Dítě nepovolilo přehled používání.\nMusí ho povolit v aplikaci Watch na svém telefonu.",
+                    box, getString(R.string.usage_denied),
                     14f, MUTED
                 ); return
             }
@@ -990,11 +995,11 @@ class MainActivity : Activity() {
             val listEnc = u.optString("listEnc")
             val list = Crypto.decrypt(secret, listEnc)?.let { JSONArray(it) }
             if (list == null || list.length() == 0) {
-                label(box, "Dnes zatím nic nepoužívalo.", 14f, MUTED); return
+                label(box, getString(R.string.nothing_used), 14f, MUTED); return
             }
             var max = 1L
             for (i in 0 until list.length()) max = maxOf(max, list.getJSONObject(i).optLong("ms"))
-            lineLabel(box, "Aktualizováno ${ago(u.optLong("at"))}", 12f, MUTED)
+            lineLabel(box, getString(R.string.updated, ago(u.optLong("at"))), 12f, MUTED)
             for (i in 0 until list.length()) {
                 val o = list.getJSONObject(i)
                 val ms = o.optLong("ms")
@@ -1014,7 +1019,7 @@ class MainActivity : Activity() {
 
     private fun scheduleScreen() {
         val l = root()
-        subHeader(l, "Rozvrh", "V zadaných časech se internet sám odpojí. Výjimku můžeš kdykoli povolit.")
+        subHeader(l, getString(R.string.tile_schedule), getString(R.string.schedule_sub))
         val rules = mutableListOf<Rule>()
         state?.optJSONArray("schedule")?.let { a ->
             for (i in 0 until a.length()) {
@@ -1038,7 +1043,7 @@ class MainActivity : Activity() {
             box.removeAllViews()
             if (rules.isEmpty()) {
                 val c = card(box, 16)
-                label(c, "Zatím žádné pravidlo.", 14f, MUTED)
+                label(c, getString(R.string.no_rule), 14f, MUTED)
             }
             rules.forEachIndexed { idx, r ->
                 val c = card(box, 16)
@@ -1064,70 +1069,70 @@ class MainActivity : Activity() {
                     }
                 }
                 val lockCb = CheckBox(this).apply {
-                    text = "Zamknout telefon na začátku"; setTextColor(TEXT); textSize = 14f
+                    text = getString(R.string.lock_at_start); setTextColor(TEXT); textSize = 14f
                     isChecked = r.lock; buttonTintList = ColorStateList.valueOf(BLUE)
                     setOnCheckedChangeListener { _, v -> r.lock = v }
                 }
                 c.addView(lockCb, lp(12))
-                textButton(c, "Smazat pravidlo") { rules.removeAt(idx); draw() }
+                textButton(c, getString(R.string.delete_rule)) { rules.removeAt(idx); draw() }
             }
         }
         draw()
 
         if (true) {
-            bigButton(l, "＋", "Přidat pravidlo", CARD2, 16) {
-                if (rules.size >= 6) { toast("Nejvýše 6 pravidel"); return@bigButton }
+            bigButton(l, "＋", getString(R.string.add_rule), CARD2, 16) {
+                if (rules.size >= 6) { toast(getString(R.string.max_rules)); return@bigButton }
                 rules.add(Rule((1..7).toMutableSet(), "21:00", "07:00", false))
                 draw()
             }
         }
-        bigButton(l, "💾", "Uložit rozvrh", BLUE, 12) {
-            if (rules.any { it.d.isEmpty() }) { toast("Vyber u pravidla aspoň jeden den"); return@bigButton }
+        bigButton(l, "💾", getString(R.string.save_schedule), BLUE, 12) {
+            if (rules.any { it.d.isEmpty() }) { toast(getString(R.string.pick_day)); return@bigButton }
             val arr = JSONArray()
             rules.forEach { r ->
                 arr.put(
                     JSONObject().put("d", JSONArray(r.d.sorted())).put("s", r.s).put("e", r.e).put("lock", r.lock)
                 )
             }
-            if (cmd(JSONObject().put("t", "setSchedule").put("rules", arr))) toast("Rozvrh uložen")
+            if (cmd(JSONObject().put("t", "setSchedule").put("rules", arr))) toast(getString(R.string.schedule_saved))
         }
     }
 
     private fun locationScreen() {
         val l = root()
-        subHeader(l, "Poloha a baterie")
+        subHeader(l, getString(R.string.location_battery))
         val c = card(l, 16)
         val bat = label(c, "", 18f, TEXT, true)
         val loc = label(c, "", 14f, MUTED, topDp = 12)
-        val mapBtn = bigButton(l, "🗺", "Zobrazit na mapě", BLUE, 16) { }
-        bigButton(l, "📍", "Aktualizovat polohu", CARD2, 12) {
-            if (cmd(JSONObject().put("t", "getLocation"))) toast("Zjišťuji polohu…")
+        val mapBtn = bigButton(l, "🗺", getString(R.string.show_on_map), BLUE, 16) { }
+        bigButton(l, "📍", getString(R.string.update_location), CARD2, 12) {
+            if (cmd(JSONObject().put("t", "getLocation"))) toast(getString(R.string.locating))
         }
         fun refresh() {
             val s = statusMsg
             if (s == null) {
-                bat.text = "Zatím žádná data"; loc.text = "Klepni na Aktualizovat polohu."
+                bat.text = getString(R.string.no_data_yet); loc.text = getString(R.string.tap_update)
                 mapBtn.visibility = View.GONE; return
             }
             bat.text = if (s.has("bat")) {
-                "🔋 ${s.optInt("bat")} %" + if (s.optBoolean("chg")) " (nabíjí se)" else ""
-            } else "🔋 neznámá"
+                "🔋 ${s.optInt("bat")} %" + if (s.optBoolean("chg")) " (${getString(R.string.charging)})" else ""
+            } else getString(R.string.battery_unknown)
             val secret = Prefs.secretFor(this, Prefs.code(this) ?: "")
             val locJson = Crypto.decrypt(secret, s.optString("locEnc"))?.let { JSONObject(it) }
             if (locJson != null) {
                 val lat = locJson.optDouble("lat"); val lon = locJson.optDouble("lon")
-                loc.text = "📍 %.5f, %.5f\nPřesnost asi %d m · %s".format(
+                loc.text = getString(R.string.loc_fmt).format(
                     lat, lon, locJson.optDouble("acc").toInt(), ago(s.optLong("locAt"))
                 )
                 mapBtn.visibility = View.VISIBLE
                 mapBtn.setOnClickListener {
                     val uri = Uri.parse("https://www.google.com/maps/search/?api=1&query=$lat,$lon")
-                    try { startActivity(Intent(Intent.ACTION_VIEW, uri)) } catch (_: Exception) { toast("Nelze otevřít mapu") }
+                    try { startActivity(Intent(Intent.ACTION_VIEW, uri)) } catch (_: Exception) { toast(getString(R.string.cant_open_map)) }
                 }
             } else {
                 loc.text = if (!s.optBoolean("locOk", true)) {
-                    "Dítě nepovolilo polohu.\nMusí ji povolit v aplikaci Watch na svém telefonu."
-                } else "Poloha zatím není známá.\nKlepni na Aktualizovat polohu."
+                    getString(R.string.loc_denied)
+                } else getString(R.string.loc_unknown)
                 mapBtn.visibility = View.GONE
             }
         }

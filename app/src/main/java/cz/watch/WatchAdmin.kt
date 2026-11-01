@@ -7,7 +7,7 @@ import android.content.Intent
 class WatchAdmin : DeviceAdminReceiver() {
 
     override fun onDisableRequested(context: Context, intent: Intent): CharSequence =
-        "Rodič bude upozorněn, že vypínáš ochranu."
+        context.getString(R.string.admin_disable_warn)
 
     override fun onDisabled(context: Context, intent: Intent) {
         if (Prefs.role(context) != "child") return

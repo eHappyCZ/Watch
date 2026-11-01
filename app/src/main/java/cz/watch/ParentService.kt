@@ -19,13 +19,13 @@ class ParentService : Service() {
             NotificationChannel("watch_parent", "Watch", NotificationManager.IMPORTANCE_MIN)
         )
         nm.createNotificationChannel(
-            NotificationChannel("watch_alert", "Upozornění", NotificationManager.IMPORTANCE_HIGH)
+            NotificationChannel("watch_alert", getString(R.string.ch_alerts), NotificationManager.IMPORTANCE_HIGH)
         )
         startForeground(
             3,
             Notification.Builder(this, "watch_parent")
                 .setContentTitle("Watch")
-                .setContentText("Hlídám dětské telefony")
+                .setContentText(getString(R.string.watching_kids))
                 .setSmallIcon(R.drawable.ic_stat_watch)
                 .build()
         )
@@ -61,8 +61,8 @@ class ParentService : Service() {
                     nm.notify(
                         d.code, 4,
                         Notification.Builder(this, "watch_alert")
-                            .setContentTitle("⚠️ ${d.name}: ochrana vypnuta")
-                            .setContentText("Dítě vypnulo správce zařízení na svém telefonu.")
+                            .setContentTitle("⚠️ " + getString(R.string.protection_off, d.name))
+                            .setContentText(getString(R.string.child_disabled_admin))
                             .setSmallIcon(R.drawable.ic_stat_watch)
                             .setContentIntent(open)
                             .setAutoCancel(true)
@@ -74,15 +74,15 @@ class ParentService : Service() {
                 val at = o.optLong("at")
                 if (at > Prefs.long(this, "lastReq_${d.code}")) {
                     Prefs.setLong(this, "lastReq_${d.code}", at)
-                    val text = Crypto.decrypt(d.secret, o.optString("textEnc")) ?: "(nepodařilo se dešifrovat)"
+                    val text = Crypto.decrypt(d.secret, o.optString("textEnc")) ?: getString(R.string.decrypt_failed)
                     val b = Notification.Builder(this, "watch_alert")
-                        .setContentTitle("🕐 ${d.name} žádá o čas")
+                        .setContentTitle("🕐 " + getString(R.string.name_requests, d.name))
                         .setContentText(text)
                         .setSmallIcon(R.drawable.ic_stat_watch)
                         .setContentIntent(open)
                         .setAutoCancel(true)
-                    for ((i, min) in listOf(10, 30).withIndex()) b.addAction(action(d.code, min, i, "Povolit $min min"))
-                    b.addAction(action(d.code, 0, 2, "Zamítnout"))
+                    for ((i, min) in listOf(10, 30).withIndex()) b.addAction(action(d.code, min, i, getString(R.string.allow_min, min)))
+                    b.addAction(action(d.code, 0, 2, getString(R.string.deny)))
                     nm.notify(d.code, 5, b.build())
                 }
             }

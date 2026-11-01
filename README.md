@@ -85,6 +85,17 @@ Requires JDK 17+ and the Android SDK. Release signing uses `keystore/keystore.pr
 ## 🛠 Tech stack
 Native Android (Kotlin, no UI libraries) · `VpnService` · `DeviceAdminReceiver` · foreground services · Node.js + `ws` · end-to-end encryption.
 
+## 🌍 Languages
+
+The app follows the phone's language. Currently available: **English** (default) and **Čeština**.
+On Android 13+ you can also pick a language per app in *Settings → Apps → Watch → Language*.
+
+Adding a translation takes two steps:
+1. Copy [`app/src/main/res/values/strings.xml`](app/src/main/res/values/strings.xml) to `app/src/main/res/values-<code>/strings.xml` (e.g. `values-de`) and translate the texts.
+2. Add `<locale android:name="<code>" />` to [`res/xml/locales_config.xml`](app/src/main/res/xml/locales_config.xml).
+
+Pull requests with new languages are welcome.
+
 ## 📄 License
 No license has been chosen yet — all rights reserved by the author.
 

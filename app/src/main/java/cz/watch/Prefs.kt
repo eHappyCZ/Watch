@@ -27,12 +27,12 @@ object Prefs {
         val raw = p(c).getString("devices", null)
         if (raw == null) {
             val code = code(c)
-            return if (role(c) == "parent" && code != null) listOf(Dev(code, "Dítě")) else emptyList()
+            return if (role(c) == "parent" && code != null) listOf(Dev(code, c.getString(R.string.child_default))) else emptyList()
         }
         val arr = JSONArray(raw)
         return (0 until arr.length()).map {
             val o = arr.getJSONObject(it)
-            Dev(o.getString("code"), o.optString("name", "Dítě"), o.optString("secret", ""))
+            Dev(o.getString("code"), o.optString("name", c.getString(R.string.child_default)), o.optString("secret", ""))
         }
     }
 
