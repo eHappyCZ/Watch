@@ -1,0 +1,96 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+:root{--bg:#0A0F1E;--card:#141B2E;--card2:#1B2437;--text:#F5F7FA;--muted:#8B96AA;--muted2:#6B7A94;--light:#D7DEEB;--red:#EF4444;--green:#22C55E;--blue:#5B6CFF;--amber:#F59E0B;--mint:#7CFFB2;--gold:#FFC24B;--pink:#FF7A86}
+*{box-sizing:border-box;margin:0}
+html,body{width:360px;height:760px;background:var(--bg);color:var(--text);font-family:Roboto,"Segoe UI",sans-serif;overflow:hidden}
+.sb{height:28px;display:flex;justify-content:space-between;padding:6px 16px;font-size:12px;color:var(--light)}
+.pg{padding:8px 18px}
+h1{font-size:34px;font-weight:700;margin:6px 0 14px}
+.chips{display:flex;gap:8px;margin-bottom:14px}
+.chip{padding:8px 14px;border-radius:20px;background:var(--card);border:1px solid #ffffff14;font-size:14px;color:var(--light)}
+.chip.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.card{background:var(--card);border:1px solid #ffffff14;border-radius:20px;padding:16px;margin-bottom:12px}
+.row{display:flex;align-items:center;gap:14px}
+.badge{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;flex:none}
+.big{font-size:19px;font-weight:700}
+.hint{font-size:13px;margin-top:3px}
+.info{font-size:12.5px;color:var(--muted);margin-top:12px}
+.sec{font-size:12px;letter-spacing:.06em;color:var(--muted2);font-weight:700;margin:16px 0 8px;text-transform:uppercase}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tile{background:var(--card);border:1px solid #ffffff14;border-radius:18px;padding:12px 6px;text-align:center;font-size:13px;color:var(--light);font-weight:700}
+.tile .badge{width:42px;height:42px;font-size:19px;margin:0 auto 6px}
+.pills{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pill{background:var(--card2);border-radius:22px;padding:13px;text-align:center;font-size:13.5px;font-weight:700;color:var(--light)}
+.alert{background:#2B1420;border:1px solid #FF7A8644;border-radius:20px;padding:14px;margin-bottom:12px}
+.req{background:#2A1F10;border:1px solid #FFC24B4D;border-radius:20px;padding:14px;margin-bottom:12px}
+.btns{display:flex;gap:8px;margin-top:10px}
+.b{flex:1;border-radius:16px;padding:9px;text-align:center;font-size:13px;font-weight:700;background:#ffffff14}
+.link{color:var(--blue);font-size:13px;font-weight:700;text-align:center;margin-top:14px}
+.app{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #ffffff10;font-size:16px}
+.sw{margin-left:auto;width:42px;height:24px;border-radius:12px;background:#ffffff22;position:relative}
+.sw.on{background:var(--blue)}
+.sw:after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff}
+.sw.on:after{left:21px}
+.bar{height:8px;border-radius:4px;background:var(--blue);margin-top:6px}
+.day{display:inline-flex;width:34px;height:34px;border-radius:50%;align-items:center;justify-content:center;background:var(--card2);font-size:12px;margin-right:4px;color:var(--muted)}
+.day.on{background:var(--blue);color:#fff}
+.code{font-size:22px;font-weight:700;letter-spacing:.08em;margin-top:8px}
+.list{font-size:14px;margin-top:10px}
+.list div{padding:6px 0;display:flex;gap:10px}
+.btn{background:var(--blue);border-radius:18px;padding:15px;text-align:center;font-weight:700;margin-top:14px}
+.map{height:150px;border-radius:14px;margin-top:10px;background:linear-gradient(135deg,#1c2a44,#14213a);position:relative}
+.map i{position:absolute;left:48%;top:40%;font-style:normal;font-size:28px}
+</style></head><body>
+<div class="sb"><span>9:41</span><span>▂▄▆ 🔋</span></div>
+<div class="pg" id="p"></div>
+<script>
+const s=new URLSearchParams(location.search).get('s')||'main';
+const V={
+main:`<div class="chips"><div class="chip on">Honza</div><div class="chip">Anička</div><div class="chip">＋ Přidat dítě</div></div>
+<div class="alert"><div style="font-weight:700;color:#FFD3D7;font-size:14.5px">Anička vypnula ochranu<br>dnes ve 14:32</div><div style="color:var(--pink);font-size:12.5px;font-weight:700;margin-top:8px">Rozumím</div></div>
+<div class="req"><div style="font-weight:700;color:#FFE3A8;font-size:14.5px">Honza žádá o čas<br>Chci ještě 30 minut</div><div class="btns"><div class="b">+10 min</div><div class="b">+30 min</div></div></div>
+<div class="card"><div class="row"><div class="badge" style="background:#7CFFB233">🌐</div><div><div class="big">Internet je zapnutý</div><div class="hint" style="color:var(--mint)">Honza má normální přístup</div></div></div><div class="info">🔋 78 % · 🔊 40 % · před 2 min</div></div>
+<div class="sec">Rychlé akce</div>
+<div class="tiles"><div class="tile"><div class="badge" style="background:#EF444433">🌐</div>Odpojit<br>internet</div><div class="tile"><div class="badge" style="background:#5B6CFF33">🔒</div>Zamknout</div><div class="tile"><div class="badge" style="background:#FFC24B33">🔊</div>Hlasitost</div>
+<div class="tile"><div class="badge" style="background:#ffffff14">📱</div>Aplikace</div><div class="tile"><div class="badge" style="background:#ffffff14">🗓</div>Rozvrh</div><div class="tile"><div class="badge" style="background:#ffffff14">📍</div>Poloha</div></div>
+<div class="sec">Komunikace</div>
+<div class="pills"><div class="pill">💬 Zpráva</div><div class="pill">🔔 Najít telefon</div></div>
+<div class="link">Upravit nebo odebrat dítě</div>`,
+blocked:`<div class="chips"><div class="chip on">Honza</div><div class="chip">Anička</div><div class="chip">＋ Přidat dítě</div></div>
+<div class="card"><div class="row"><div class="badge" style="background:#EF444433">🌐</div><div><div class="big">Internet je vypnutý</div><div class="hint" style="color:var(--amber)">Podle rozvrhu</div></div></div><div class="info">🔋 64 % (nabíjí se) · 🔊 0 % · před 1 min</div></div>
+<div class="sec">Rychlé akce</div>
+<div class="tiles"><div class="tile"><div class="badge" style="background:#F59E0B33">🌐</div>Povolit<br>na chvíli</div><div class="tile"><div class="badge" style="background:#5B6CFF33">🔒</div>Zamknout</div><div class="tile"><div class="badge" style="background:#FFC24B33">🔊</div>Hlasitost</div>
+<div class="tile"><div class="badge" style="background:#ffffff14">📱</div>Aplikace</div><div class="tile"><div class="badge" style="background:#ffffff14">🗓</div>Rozvrh</div><div class="tile"><div class="badge" style="background:#ffffff14">📍</div>Poloha</div></div>
+<div class="sec">Komunikace</div>
+<div class="pills"><div class="pill">💬 Zpráva</div><div class="pill">🔕 Ztlumit</div></div>`,
+apps:`<h1 style="font-size:24px">Aplikace</h1><div style="color:var(--muted);font-size:13px">Vyber aplikace, které se mají blokovat. Zbytek internetu funguje.</div>
+<div style="margin-top:8px"><div class="app">🎮 Roblox<div class="sw on"></div></div><div class="app">🎵 TikTok<div class="sw on"></div></div><div class="app">▶️ YouTube<div class="sw"></div></div><div class="app">💬 Messenger<div class="sw"></div></div><div class="app">📷 Instagram<div class="sw on"></div></div><div class="app">🧩 Minecraft<div class="sw"></div></div><div class="app">📚 Škola Online<div class="sw"></div></div></div>
+<div class="btn">Uložit</div>`,
+usage:`<h1 style="font-size:24px">Používání dnes</h1><div style="color:var(--muted);font-size:12px;margin-bottom:12px">Aktualizováno před 1 min</div>
+<div class="card"><div style="font-size:15px">Roblox · 1 h 42 min</div><div class="bar" style="width:100%"></div></div>
+<div class="card"><div style="font-size:15px">YouTube · 58 min</div><div class="bar" style="width:57%"></div></div>
+<div class="card"><div style="font-size:15px">TikTok · 31 min</div><div class="bar" style="width:30%"></div></div>
+<div class="card"><div style="font-size:15px">Škola Online · 12 min</div><div class="bar" style="width:12%"></div></div>
+<div class="btn">Obnovit</div>`,
+schedule:`<h1 style="font-size:24px">Rozvrh</h1><div style="color:var(--muted);font-size:13px;margin-bottom:12px">Internet se v zadanou dobu sám odpojí.</div>
+<div class="card"><div><span class="day on">Po</span><span class="day on">Út</span><span class="day on">St</span><span class="day on">Čt</span><span class="day on">Pá</span><span class="day">So</span><span class="day">Ne</span></div>
+<div class="row" style="margin-top:14px;font-size:22px;font-weight:700"><span>21:00</span><span style="color:var(--muted)">→</span><span>07:00</span></div>
+<div class="row" style="margin-top:12px;font-size:14px">Zamknout telefon na začátku<div class="sw on"></div></div></div>
+<div class="card"><div><span class="day">Po</span><span class="day">Út</span><span class="day">St</span><span class="day">Čt</span><span class="day">Pá</span><span class="day on">So</span><span class="day on">Ne</span></div>
+<div class="row" style="margin-top:14px;font-size:22px;font-weight:700"><span>22:30</span><span style="color:var(--muted)">→</span><span>08:30</span></div>
+<div class="row" style="margin-top:12px;font-size:14px">Zamknout telefon na začátku<div class="sw"></div></div></div>
+<div class="btn">Uložit rozvrh</div>`,
+location:`<h1 style="font-size:24px">Poloha a baterie</h1>
+<div class="card"><div style="font-size:15px">🔋 78 %</div><div class="map"><i>📍</i></div><div style="font-size:13.5px;margin-top:10px">📍 50.08804, 14.42076<br><span style="color:var(--muted)">Přesnost asi 12 m · před 3 min</span></div></div>
+<div class="btn">Aktualizovat polohu</div><div class="link">Otevřít v mapách</div>
+<div style="color:var(--muted2);font-size:12px;margin-top:16px;text-align:center">🔐 Poloha je šifrovaná end-to-end,<br>server vidí jen nečitelný text.</div>`,
+child:`<h1>Watch</h1>
+<div class="card"><div style="font-size:12px;letter-spacing:.05em;color:var(--muted2);font-weight:700">PÁROVACÍ KÓD PRO RODIČE</div><div class="code">K7M2 9QXD<br>4HTR WB58</div><div style="color:var(--blue);font-size:12.5px;font-weight:700;margin-top:8px">⧉ Kopírovat</div></div>
+<div class="card"><div class="list"><div>🟢 Ochrana běží (VPN)</div><div>🟢 Zamykání povoleno</div><div>🟢 Přehled používání povolen</div><div>🟢 Poloha „vždy“</div><div>🟢 PIN nastaven</div></div></div>
+<div style="color:var(--muted);font-size:12.5px">Poslední příkaz: Odpojit internet</div>
+<div class="btn" style="background:var(--card2);color:var(--light);margin-top:18px">⏱ Požádat o čas</div>
+<div style="color:var(--muted);font-size:13px;margin-top:16px;text-align:center">Tuto aplikaci nevypínej.</div>
+<div class="link" style="color:var(--pink)">Zrušit párování</div>`};
+document.getElementById('p').innerHTML=V[s];
+</script></body></html>
